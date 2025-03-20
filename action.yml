@@ -1,0 +1,32 @@
+name: 'Incus Setup Action'
+description: 'Sets up Incus by adding the repository and installing the client'
+author: 'Georgios Ntoutsos'
+branding:
+  icon: 'box'
+  color: 'blue'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install curl
+      run: sudo apt update && sudo apt install -y curl
+      shell: bash
+
+    - name: Add incus repository
+      run: |
+        sudo mkdir -p /etc/apt/keyrings/
+        sudo curl -fsSL https://pkgs.zabbly.com/key.asc -o /etc/apt/keyrings/zabbly.asc
+        sudo sh -c 'cat <<EOF > /etc/apt/sources.list.d/zabbly-incus-stable.sources
+        Enabled: yes
+        Types: deb
+        URIs: https://pkgs.zabbly.com/incus/stable
+        Suites: $(. /etc/os-release && echo ${VERSION_CODENAME})
+        Components: main
+        Architectures: $(dpkg --print-architecture)
+        Signed-By: /etc/apt/keyrings/zabbly.asc
+
+        EOF'
+      shell: bash
+
+    - name: Install incus
+      run: sudo apt update && sudo apt install -y incus-client
+      shell: bash
